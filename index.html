@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theoliver Delícias no Pote</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007BFF">
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #007BFF; color: white; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0056b3; }
+  h1 { margin: 0; font-weight: bold; }
+  #config { font-size: 24px; cursor: pointer; }
+  #produtos { padding: 20px; overflow-y: auto; max-height: calc(100vh - 120px); }
+  .produto { border: 2px solid white; padding: 15px; margin-bottom: 15px; background: #ffffff22; border-radius: 12px; }
+  .produto img { max-width: 100px; display: block; margin-bottom: 10px; border-radius: 8px; }
+  button { padding: 10px 15px; background: #25D366; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; }
+  button:hover { background: #1ebc57; }
+  #editar { display: none; padding: 20px; background: #0056b3; height: calc(100vh - 60px); overflow-y: auto; }
+  input { width: 100%; margin: 5px 0; padding: 8px; border-radius: 6px; border: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="nomeLoja">Theoliver Delícias no Pote</h1>
+  <span id="config">⚙️</span>
+</header>
+
+<div id="produtos"></div>
+
+<div id="editar">
+  <h2>⚙️ Modo Edição</h2>
+  <label>Nome da Loja:</label>
+  <input type="text" id="editNomeLoja"><br>
+  
+  <label>Número WhatsApp:</label>
+  <input type="text" id="editNumero"><br>
+
+  <label>Nova Senha:</label>
+  <input type="password" id="editSenha"><br>
+
+  <h3>Produtos</h3>
+  <div id="listaEdicao"></div>
+  
+  <button onclick="salvarEdicao()">Salvar Alterações</button>
+  <button onclick="sairEdicao()">Sair do Modo Edição</button>
+</div>
+
+<script>
+  let produtos = [
+    { nome: "Bolo de Chocolate", preco: 20, img: "https://via.placeholder.com/100?text=Bolo" },
+    { nome: "Cookie de Baunilha", preco: 5, img: "https://via.placeholder.com/100?text=Cookie" },
+    { nome: "Pão de Queijo", preco: 3, img: "https://via.placeholder.com/100?text=Pao" }
+  ];
+
+  let numeroWhatsApp = "5511999999999";
+  let senhaCorreta = "1234"; // senha inicial
+  let emEdicao = false;
+
+  const container = document.getElementById("produtos");
+  const editarDiv = document.getElementById("editar");
+  const listaEdicao = document.getElementById("listaEdicao");
+
+  function renderProdutos() {
+    container.innerHTML = "";
+    produtos.forEach(produto => {
+      const div = document.createElement("div");
+      div.className = "produto";
+      div.innerHTML = `
+        <img src="${produto.img}" alt="${produto.nome}">
+        <strong>${produto.nome}</strong><br>
+        <span>R$ ${produto.preco.toFixed(2)}</span><br><br>
+        <button onclick="enviarWhatsApp('${produto.nome}')">Pedir no WhatsApp</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function renderEdicao() {
+    document.getElementById("editNomeLoja").value = document.getElementById("nomeLoja").innerText;
+    document.getElementById("editNumero").value = numeroWhatsApp;
+    document.getElementById("editSenha").value = "";
+    listaEdicao.innerHTML = "";
+    produtos.forEach((produto, i) => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <input type="text" value="${produto.nome}" onchange="produtos[${i}].nome=this.value">
+        <input type="number" value="${produto.preco}" onchange="produtos[${i}].preco=parseFloat(this.value)">
+        <input type="file" accept="image/*" onchange="carregarImagem(event, ${i})">
+      `;
+      listaEdicao.appendChild(div);
+    });
+  }
+
+  function carregarImagem(event, i) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => { produtos[i].img = e.target.result; renderProdutos(); };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function enviarWhatsApp(nomeProduto) {
+    const mensagem = `Olá! Quero comprar o produto: ${nomeProduto}`;
+    const link = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+    window.open(link, "_blank");
+  }
+
+  function salvarEdicao() {
+    document.getElementById("nomeLoja").innerText = document.getElementById("editNomeLoja").value;
+    numeroWhatsApp = document.getElementById("editNumero").value;
+
+    const novaSenha = document.getElementById("editSenha").value;
+    if (novaSenha.trim() !== "") {
+      senhaCorreta = novaSenha;
+      alert("Senha atualizada com sucesso!");
+    }
+
+    renderProdutos();
+    alert("Alterações salvas!");
+  }
+
+  function sairEdicao() {
+    editarDiv.style.display = "none";
+    container.style.display = "block";
+    emEdicao = false;
+  }
+
+  document.getElementById("config").addEventListener("click", () => {
+    if (!emEdicao) {
+      const senha = prompt("Digite a senha:");
+      if (senha === senhaCorreta) {
+        emEdicao = true;
+        container.style.display = "none";
+        editarDiv.style.display = "block";
+        renderEdicao();
+      } else {
+        alert("Senha incorreta!");
+      }
+    }
+  });
+
+  renderProdutos();
+</script>
+
+</body>
+</html>
